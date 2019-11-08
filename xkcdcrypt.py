@@ -32,7 +32,7 @@ class XkcdCrypt:
             wordlist = word_file.read()
         wordlist = wordlist.split()
         xkcdphrase = [choice(wordlist)
-                      for word in range(4)]  # Words in passphrase
+                      for __ in range(4)]  # Words in passphrase
         return '-'.join(xkcdphrase)
 
     @staticmethod
@@ -68,7 +68,7 @@ class XkcdCrypt:
         self._extract(plaintext)
 
     def _extract(self: object, plaintext: bytes) -> None:
-        dest = (self.in_path.parent).joinpath(self.in_path.stem)
+        dest = self.in_path.parent.joinpath(self.in_path.stem)
         with TemporaryDirectory() as temp_dir:
             with BytesIO(plaintext) as buffer:
                 with tarfile.open(fileobj=buffer, mode='r:bz2') as arc_file:
