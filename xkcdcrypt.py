@@ -11,30 +11,30 @@ from secrets import choice
 from tempfile import mkstemp, TemporaryDirectory
 
 
-class Xkcdcrypt:
-    def __init__(self: object, inPath: str) -> None:
+class XkcdCrypt:
+    def __init__(self: object, in_path: str) -> None:
         self.SALT_SIZE = 16  # Size of salt in bytes
         self.NONCE_SIZE = 16  # Size of nonce in bytes
-        self.inPath = inPath
+        self.in_path = in_path
 
     def encrypt(self: object) -> [bytes, str]:
-        passphrase = self._genXkcdPhrase()
+        passphrase = self._gen_xkcd_phrase()
         salt = os.urandom(self.SALT_SIZE)
-        key = self._deriveKey(passphrase.encode('utf-8'), salt)
+        key = self._derive_key(passphrase.encode('utf-8'), salt)
         siv = SIV(key)
         nonce = os.urandom(self.NONCE_SIZE)
         ciphertext = salt + nonce + siv.seal(self._archive(), [nonce])
         return ciphertext, passphrase
 
-    def _genXkcdPhrase(self: object) -> str:
-        with open('words.txt', 'r') as wordFile:
-            wordlist = wordFile.read()
+    def _gen_xkcd_phrase(self: object) -> str:
+        with open('words.txt', 'r') as word_file:
+            wordlist = word_file.read()
         wordlist = wordlist.split()
         xkcdphrase = [choice(wordlist)
                       for word in range(4)]  # Words in passphrase
         return '-'.join(xkcdphrase)
 
-    def _deriveKey(self: object, passphrase: bytes, salt: bytes) -> bytes:
+    def _derive_key(self: object, passphrase: bytes, salt: bytes) -> bytes:
         return argon2.low_level.hash_secret_raw(
             passphrase,
             salt,
@@ -51,61 +51,61 @@ class Xkcdcrypt:
 
     def _archive(self: object) -> bytes:
         with BytesIO() as buffer:
-            with tarfile.open(fileobj=buffer, mode='x:bz2') as arcFile:
-                arcFile.add(self.inPath)
+            with tarfile.open(fileobj=buffer, mode='x:bz2') as arc_file:
+                arc_file.add(self.in_path)
             buffer.seek(0)
             return buffer.read()
 
     def decrypt(self: object, passphrase: bytes) -> None:
-        with open(self.inPath, 'rb') as inFile:
-            salt = inFile.read(self.SALT_SIZE)
-            key = self._deriveKey(passphrase, salt)
+        with open(self.in_path, 'rb') as in_file:
+            salt = in_file.read(self.SALT_SIZE)
+            key = self._derive_key(passphrase, salt)
             siv = SIV(key)
-            nonce = inFile.read(self.NONCE_SIZE)
-            plaintext = siv.open(inFile.read(), [nonce])
+            nonce = in_file.read(self.NONCE_SIZE)
+            plaintext = siv.open(in_file.read(), [nonce])
         self._extract(plaintext)
 
     def _extract(self: object, plaintext: bytes) -> None:
-        dest = (self.inPath.parent).joinpath(self.inPath.stem)
-        with TemporaryDirectory() as tempDir:
+        dest = (self.in_path.parent).joinpath(self.in_path.stem)
+        with TemporaryDirectory() as temp_dir:
             with BytesIO(plaintext) as buffer:
-                with tarfile.open(fileobj=buffer, mode='r:bz2') as arcFile:
-                    arcFile.extractall(tempDir)
-            temp = Path(tempDir).joinpath(dest.name)
+                with tarfile.open(fileobj=buffer, mode='r:bz2') as arc_file:
+                    arc_file.extractall(temp_dir)
+            temp = Path(temp_dir).joinpath(dest.name)
             os.rename(temp, dest)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='Encrypt & decrypt files.')
     parser.add_argument('file', help='The file to be encrypted or decrypted.')
-    inPath = Path(parser.parse_args().file)
-    xc = Xkcdcrypt(inPath)
-    if xcSuffix != inPath.suffix:
+    in_path = Path(parser.parse_args().file)
+    xc = XkcdCrypt(in_path)
+    if XC_SUFFIX != in_path.suffix:
         try:
             ciphertext, passphrase = xc.encrypt()
-            outPath = inPath.with_suffix(inPath.suffix + xcSuffix)
-            stempFD, stempPath = mkstemp()
-            os.write(stempFD, ciphertext)
-            os.fsync(stempFD)
-            os.close(stempFD)
-            os.rename(stempPath, outPath)
-        except:
-            print(f"{inPath.name} was not encrypted.")
+            out_path = in_path.with_suffix(in_path.suffix + XC_SUFFIX)
+            stemp_fd, stemp_path = mkstemp()
+            os.write(stemp_fd, ciphertext)
+            os.fsync(stemp_fd)
+            os.close(stemp_fd)
+            os.rename(stemp_path, out_path)
+        except Exception:
+            print(f"{in_path.name} was not encrypted.")
             exit(-1)
         else:
             print(f"Passphrase: {passphrase}")
-            print(f"{inPath.name} encrypted as {outPath.name}")
+            print(f"{in_path.name} encrypted as {out_path.name}")
     else:
         try:
             passphrase = getpass("Passphrase: ")
             xc.decrypt(passphrase.encode('utf-8'))
-        except:
-            print(f"{inPath.name} was not decrypted.")
+        except Exception:
+            print(f"{in_path.name} was not decrypted.")
             exit(-1)
         else:
-            print(f"{inPath.name} decrypted as {inPath.stem}")
+            print(f"{in_path.name} decrypted as {in_path.stem}")
 
 
 if __name__ == "__main__":
-    xcSuffix = '.xc'
+    XC_SUFFIX = '.xc'
     main()
