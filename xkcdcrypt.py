@@ -26,7 +26,8 @@ class XkcdCrypt:
         ciphertext = salt + nonce + siv.seal(self._archive(), [nonce])
         return ciphertext, passphrase
 
-    def _gen_xkcd_phrase(self: object) -> str:
+    @staticmethod
+    def _gen_xkcd_phrase() -> str:
         with open('words.txt', 'r') as word_file:
             wordlist = word_file.read()
         wordlist = wordlist.split()
@@ -34,7 +35,8 @@ class XkcdCrypt:
                       for word in range(4)]  # Words in passphrase
         return '-'.join(xkcdphrase)
 
-    def _derive_key(self: object, passphrase: bytes, salt: bytes) -> bytes:
+    @staticmethod
+    def _derive_key(passphrase: bytes, salt: bytes) -> bytes:
         return argon2.low_level.hash_secret_raw(
             passphrase,
             salt,
