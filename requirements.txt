@@ -1,0 +1,6 @@
+argon2-cffi==21.3.0
+argon2-cffi-bindings==21.2.0
+cffi==1.15.0
+cryptography==37.0.2
+miscreant==0.3.0
+pycparser==2.21
