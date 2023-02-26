@@ -1,0 +1,12 @@
+[package]
+name = "xkcdcrypt"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aes-gcm-siv = "0.11.1"
+argon2 = "0.4.1"
+password-hash = { version = "0.4.2", features = ["alloc"] }
+rand = "0.8.5"
+tar = "0.4.38"
+tempfile = "3.3.0"
