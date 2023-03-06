@@ -156,7 +156,7 @@ fn restore_phc(phc: &str) -> Result<(Argon2, SaltString), Box<dyn Error>> {
     };
     let argon2 = Argon2::new(algorithm, version, params);
     let salt = match password_hash.salt {
-        Some(salt) => match SaltString::new(salt.as_str()) {
+        Some(salt) => match SaltString::from_b64(salt.as_str()) {
             Ok(salt) => salt,
             Err(_err) => Err("Salt error!")?,
         },
